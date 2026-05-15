@@ -83,7 +83,7 @@ export function TransactionModal({ isOpen, onOpenChange, transaction }: Transact
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Type</label>
               <select
                 {...register('type')}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-blue/50"
               >
                 <option value="EXPENSE">Expense</option>
                 <option value="INCOME">Income</option>
@@ -97,7 +97,7 @@ export function TransactionModal({ isOpen, onOpenChange, transaction }: Transact
                 type="number"
                 step="0.01"
                 {...register('amount', { valueAsNumber: true })}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue/50 placeholder-slate-400"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 placeholder-slate-400"
                 placeholder="0.00"
               />
               {errors.amount && <p className="text-brand-rose text-xs mt-1.5 font-medium">{errors.amount.message}</p>}
@@ -110,7 +110,7 @@ export function TransactionModal({ isOpen, onOpenChange, transaction }: Transact
               type="text"
               placeholder="e.g. Software, Payroll, Travel"
               {...register('category')}
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue/50 placeholder-slate-400"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 placeholder-slate-400"
             />
             {errors.category && <p className="text-brand-rose text-xs mt-1.5 font-medium">{errors.category.message}</p>}
           </div>
@@ -121,7 +121,7 @@ export function TransactionModal({ isOpen, onOpenChange, transaction }: Transact
               {...register('description')}
               rows={3}
               placeholder="Add details about this transaction..."
-              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-blue/50 resize-none placeholder-slate-400"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-blue/50 resize-none placeholder-slate-400"
             />
           </div>
 
