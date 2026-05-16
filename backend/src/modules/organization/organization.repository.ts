@@ -2,8 +2,24 @@ import { prisma } from '../../db/prisma';
 import { Role } from '@prisma/client';
 
 export class OrganizationRepository {
-  async getMembers(orgId: string) {
-    return prisma.user.findMany({
+  async findOrganizationById(id: string) {
+    return prisma.organization.findUnique({
+      where: { id },
+      include: { _count: { select: { users: true } } }
+    });
+  }
+
+  async updateOrganization(id: string, name: string) {
+    return prisma.organization.update({
+      where: { id },
+      data: { name },
+      include: { _count: { select: { users: true } } }
+    });
+  }
+
+  async getMembers(orgId: string, limit: number = 20, cursor?: string) {
+    const take = limit + 1;
+    const items = await prisma.user.findMany({
       where: { orgId },
       select: {
         id: true,
@@ -11,8 +27,20 @@ export class OrganizationRepository {
         role: true,
         orgId: true,
       },
-      orderBy: { role: 'asc' }
+      take,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      orderBy: { id: 'asc' } // must order by unique field for cursor pagination
     });
+
+    let nextCursor: string | null = null;
+    if (items.length > limit) {
+      const nextItem = items.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    const total = await prisma.user.count({ where: { orgId } });
+
+    return { items, nextCursor, total };
   }
 
   async findMemberById(id: string, orgId: string) {

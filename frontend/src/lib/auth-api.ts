@@ -13,11 +13,20 @@ export const authApi = {
     return res.data.data;
   },
   logout: async () => {
-    const res = await api.post<ApiResponse<null>>('/auth/logout');
+    const res = await api.post<ApiResponse<null>>('/auth/logout', undefined, {
+      headers: {
+        'X-CSRF-Token': '1',
+      },
+    });
     return res.data;
   },
   getMe: async () => {
     const res = await api.get<ApiResponse<{ user: User }>>('/auth/me');
     return res.data.data.user;
+  },
+
+  changePassword: async (data: any) => {
+    const res = await api.patch<ApiResponse<null>>('/auth/password', data);
+    return res.data;
   }
 };

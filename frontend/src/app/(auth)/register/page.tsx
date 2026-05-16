@@ -43,70 +43,75 @@ export default function RegisterPage() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Create Workspace</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">Sign up to manage your organization's finances</p>
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center p-3 bg-success/10 rounded-2xl mb-4">
+          <svg className="w-8 h-8 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+        </div>
+        <h1 className="text-4xl font-extrabold text-foreground tracking-tight mb-2">Create Workspace</h1>
+        <p className="text-muted-foreground font-medium">Join Fintriq to manage your team's finances.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Organization Name</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-1.5">Organization Name</label>
           <input
-            {...register('orgName')}
+            {...register('name')}
             type="text"
-            className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all backdrop-blur-sm"
+            className="w-full px-4 py-2.5 bg-background dark:bg-slate-900/50 border border-border rounded-lg text-foreground placeholder-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             placeholder="Acme Corp"
           />
-          {errors.orgName && <p className="text-brand-rose text-sm mt-1.5 font-medium animate-in fade-in">{errors.orgName.message}</p>}
+          {errors.name && <p className="text-danger text-sm mt-1.5 font-medium animate-in fade-in">{errors.name.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email address</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-1.5">Email address</label>
           <input
             {...register('email')}
             type="email"
-            className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all backdrop-blur-sm"
+            className="w-full px-4 py-2.5 bg-background dark:bg-slate-900/50 border border-border rounded-lg text-foreground placeholder-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             placeholder="you@example.com"
           />
-          {errors.email && <p className="text-brand-rose text-sm mt-1.5 font-medium animate-in fade-in">{errors.email.message}</p>}
+          {errors.email && <p className="text-danger text-sm mt-1.5 font-medium animate-in fade-in">{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-1.5">Password</label>
           <input
             {...register('password')}
             type="password"
-            className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all backdrop-blur-sm"
+            className="w-full px-4 py-2.5 bg-background dark:bg-slate-900/50 border border-border rounded-lg text-foreground placeholder-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             placeholder="••••••••"
           />
           {passwordVal && (
             <div className="mt-2.5 flex gap-1.5 h-1.5 w-full">
               {[...Array(4)].map((_, i) => (
                 <div 
-                  key={i} 
-                  className={`flex-1 rounded-full transition-all duration-500 ${i < getPasswordStrength() ? (getPasswordStrength() > 2 ? 'bg-brand-emerald shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]') : 'bg-slate-200 dark:bg-slate-700'}`} 
+                   key={i} 
+                   className={`flex-1 rounded-full transition-all duration-500 ${i < getPasswordStrength() ? (getPasswordStrength() > 2 ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-amber-400') : 'bg-muted'}`} 
                 />
               ))}
             </div>
           )}
-          {errors.password && <p className="text-brand-rose text-sm mt-1.5 font-medium animate-in fade-in">{errors.password.message}</p>}
+          {errors.password && <p className="text-danger text-sm mt-1.5 font-medium animate-in fade-in">{errors.password.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Confirm Password</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-1.5">Confirm Password</label>
           <input
             {...register('confirmPassword')}
             type="password"
-            className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all backdrop-blur-sm"
+            className="w-full px-4 py-2.5 bg-background dark:bg-slate-900/50 border border-border rounded-lg text-foreground placeholder-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             placeholder="••••••••"
           />
-          {errors.confirmPassword && <p className="text-brand-rose text-sm mt-1.5 font-medium animate-in fade-in">{errors.confirmPassword.message}</p>}
+          {errors.confirmPassword && <p className="text-danger text-sm mt-1.5 font-medium animate-in fade-in">{errors.confirmPassword.message}</p>}
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="relative w-full py-2.5 px-4 bg-gradient-to-r from-brand-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-semibold shadow-lg shadow-brand-blue/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed overflow-hidden mt-6"
+          className="w-full btn-primary btn-glow py-3 mt-6"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center gap-2">
@@ -120,12 +125,13 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <div className="mt-8 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
+      <div className="mt-8 text-center text-sm font-medium text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/login" className="text-brand-blue hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors">
+        <Link href="/login" className="text-primary hover:underline transition-colors font-bold">
           Sign in
         </Link>
       </div>
+      
     </div>
   );
 }

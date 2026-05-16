@@ -4,7 +4,7 @@ import { Role } from '@prisma/client';
 export const inviteMemberSchema = z.object({
   email: z.string().email('Invalid email address'),
   role: z.nativeEnum(Role),
-  password: z.string().min(8, 'Password must be at least 8 characters').optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
 export const updateRoleSchema = z.object({
@@ -13,4 +13,10 @@ export const updateRoleSchema = z.object({
 
 export const memberIdParamsSchema = z.object({
   id: z.string().uuid('Invalid user ID'),
+});
+
+export const updateOrganizationSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Organization name must be at least 2 characters'),
 });

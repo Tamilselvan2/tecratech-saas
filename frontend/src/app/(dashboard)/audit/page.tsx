@@ -4,7 +4,9 @@ import { Suspense, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useAuditLogs, AuditLog } from '@/hooks/use-audit';
 import { format } from 'date-fns';
-import { ShieldCheck, Plus, Pencil, Trash2, UserPlus, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ShieldCheck, Plus, Pencil, Trash2, UserPlus } from 'lucide-react';
+import { Pagination } from '@/components/shared/pagination';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 const ACTION_LABELS: Record<string, { label: string; icon: JSX.Element; color: string }> = {
   CREATE_TRANSACTION: { label: 'Created Transaction', icon: <Plus size={14} />, color: 'text-brand-emerald bg-brand-emerald/10' },
@@ -64,11 +66,12 @@ function AuditLogPageInner() {
 
   const cursor = searchParams.get('cursor') || undefined;
   const action = searchParams.get('action') || '';
+  const limit = Number(searchParams.get('limit')) || 20;
 
   const [cursorStack, setCursorStack] = useState<string[]>([]);
   const currentPage = cursorStack.length + 1;
 
-  const { data, isLoading } = useAuditLogs({ cursor, limit: 20, action: action || undefined });
+  const { data, isLoading, isError, error } = useAuditLogs({ cursor, limit, action: action || undefined });
 
   const updateParams = (updates: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -91,8 +94,14 @@ function AuditLogPageInner() {
     updateParams({ cursor: prev || undefined });
   };
 
+  const handleLimitChange = (newLimit: number) => {
+    setCursorStack([]);
+    updateParams({ limit: newLimit.toString(), cursor: undefined });
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <ErrorBoundary>
+      <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
@@ -121,17 +130,25 @@ function AuditLogPageInner() {
 
       {/* Table */}
       <div className="bg-white dark:bg-slate-950 border border-border rounded-2xl shadow-sm overflow-hidden">
-        {isLoading ? (
+        {isError ? (
+          <div className="px-8 py-16 text-center text-slate-700 dark:text-slate-200">
+            <p className="text-lg font-semibold">Unable to load audit logs.</p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{(error as any)?.message || 'Please try again later.'}</p>
+          </div>
+        ) : isLoading ? (
           <div className="animate-pulse">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="h-16 border-b border-border bg-white dark:bg-slate-950" />
             ))}
           </div>
         ) : !data?.data.length ? (
-          <div className="p-16 text-center">
-            <ShieldCheck className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">No activity yet</h3>
-            <p className="text-slate-500 mt-2 font-medium">Actions performed in this organisation will appear here.</p>
+          <div className="p-16 text-center bg-white dark:bg-slate-950 flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-24 h-24 bg-gradient-to-tr from-brand-blue/20 to-emerald-400/20 dark:from-brand-blue/10 dark:to-emerald-400/10 rounded-full flex items-center justify-center mb-6 shadow-sm border border-slate-100 dark:border-slate-800 relative">
+              <div className="absolute inset-2 bg-gradient-to-tr from-brand-blue to-emerald-400 rounded-full opacity-10 blur-xl"></div>
+              <ShieldCheck className="w-10 h-10 text-brand-blue relative z-10" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">No activity yet</h3>
+            <p className="mt-3 text-slate-500 font-medium max-w-md">Actions performed in this organisation will appear here securely.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -152,26 +169,21 @@ function AuditLogPageInner() {
         )}
 
         {/* Pagination */}
-        {!isLoading && (data?.meta.total ?? 0) > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-slate-900 border-t border-border rounded-b-2xl">
-            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-              Page <span className="font-bold text-slate-900 dark:text-white">{currentPage}</span>
-              {' '}· <span className="font-bold text-slate-900 dark:text-white">{data?.meta.total ?? 0}</span> total events
-            </p>
-            <div className="flex gap-2">
-              <button onClick={handlePrev} disabled={cursorStack.length === 0}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-border text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                <ChevronLeft size={16} /> Previous
-              </button>
-              <button onClick={handleNext} disabled={!data?.meta.hasMore}
-                className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-bold bg-white dark:bg-slate-800 border border-border text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
-                Next <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+        {!isLoading && !isError && (data?.meta.total ?? 0) > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalRecords={data?.meta.total ?? 0}
+            limit={limit}
+            hasPrev={cursorStack.length > 0}
+            hasNext={data?.meta.hasMore ?? false}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            onLimitChange={handleLimitChange}
+          />
         )}
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
 

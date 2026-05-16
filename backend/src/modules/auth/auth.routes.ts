@@ -1,16 +1,28 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { AuthController } from './auth.controller';
 import { validateRequest } from '../../middlewares/validateRequest';
-import { loginSchema, registerSchema } from './auth.validation';
+import { loginSchema, registerSchema, changePasswordSchema } from './auth.validation';
 import { authenticate } from '../../middlewares/authMiddleware';
+import { verifyCsrfHeader } from '../../middlewares/csrfMiddleware';
 
 const router = Router();
 const authController = new AuthController();
 
-router.post('/register', validateRequest(registerSchema), authController.register);
-router.post('/login', validateRequest(loginSchema), authController.login);
-router.post('/refresh', authController.refresh);
-router.post('/logout', authController.logout);
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many auth requests, please try again later.' },
+});
+
+router.post('/register', authLimiter, validateRequest(registerSchema), authController.register);
+router.post('/login', authLimiter, validateRequest(loginSchema), authController.login);
+router.post('/refresh', verifyCsrfHeader, authController.refresh);
+router.post('/logout', verifyCsrfHeader, authController.logout);
 router.get('/me', authenticate, authController.getMe);
+// router.patch('/profile', authenticate, validateRequest(updateProfileSchema), authController.updateProfile);
+router.patch('/password', authenticate, validateRequest(changePasswordSchema), authController.changePassword);
 
 export default router;

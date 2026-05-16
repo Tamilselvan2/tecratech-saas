@@ -1,4 +1,5 @@
 import { AuditRepository } from './audit.repository';
+import logger from '../../utils/logger';
 
 const repo = new AuditRepository();
 
@@ -21,14 +22,13 @@ export interface LogEventParams {
   entityType: string;
   entityId?: string;
   details?: Record<string, any>;
-  ipAddress?: string;
 }
 
 export class AuditService {
   /** Fire-and-forget: log an event without blocking the main request */
   async log(params: LogEventParams) {
     return repo.create(params).catch((err) => {
-      console.error('[AuditService Error]: Failed to create audit log', err);
+      logger.warn('Failed to create audit log', { error: err?.message ?? err, params });
     });
   }
 

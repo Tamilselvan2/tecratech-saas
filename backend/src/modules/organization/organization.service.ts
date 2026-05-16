@@ -6,8 +6,31 @@ import bcrypt from 'bcrypt';
 export class OrganizationService {
   private repository = new OrganizationRepository();
 
-  async getMembers(orgId: string) {
-    return this.repository.getMembers(orgId);
+  async getOrganization(orgId: string) {
+    const org = await this.repository.findOrganizationById(orgId);
+    if (!org) throw new AppError(404, 'Organization not found');
+    return org;
+  }
+
+  async updateOrganization(orgId: string, name: string) {
+    const org = await this.repository.updateOrganization(orgId, name);
+    if (!org) throw new AppError(404, 'Organization not found');
+    return org;
+  }
+
+  async getMembers(orgId: string, query: { limit?: number, cursor?: string } = {}) {
+    const limit = Number(query.limit) || 20;
+    const result = await this.repository.getMembers(orgId, limit, query.cursor);
+    
+    return {
+      data: result.items,
+      meta: {
+        total: result.total,
+        limit,
+        nextCursor: result.nextCursor,
+        hasMore: result.nextCursor !== null
+      }
+    };
   }
 
   async inviteMember(orgId: string, email: string, role: Role, password?: string) {
@@ -15,11 +38,12 @@ export class OrganizationService {
     if (existing) {
       throw new AppError(409, 'User with this email already exists');
     }
-    
-    // In a real app, you would generate a secure random password and email it, or use invite tokens.
-    const pwd = password || 'TempPass123!';
-    const passwordHash = await bcrypt.hash(pwd, 12);
 
+    if (!password) {
+      throw new AppError(400, 'Password is required to invite a member');
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
     return this.repository.addMember(email, passwordHash, role, orgId);
   }
 

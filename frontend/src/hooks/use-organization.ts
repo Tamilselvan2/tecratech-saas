@@ -3,12 +3,48 @@ import api from '@/lib/api';
 import { User, Role } from '@/types/models';
 import { ApiResponse } from '@/types/api';
 
-export function useMembers() {
+export function useOrganization() {
   return useQuery({
-    queryKey: ['members'],
+    queryKey: ['organization'],
     queryFn: async () => {
-      const res = await api.get<ApiResponse<User[]>>('/organizations/members');
+      const res = await api.get('/organizations/current');
       return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useUpdateOrganization() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name: string }) => {
+      const res = await api.patch('/organizations/current', data);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization'] });
+      // Invalidate user/auth related queries if they exist
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+  });
+}
+
+interface MembersQueryParams {
+  limit?: number;
+  cursor?: string;
+}
+
+export function useMembers(params?: MembersQueryParams) {
+  return useQuery({
+    queryKey: ['members', params],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (params?.limit) searchParams.set('limit', params.limit.toString());
+      if (params?.cursor) searchParams.set('cursor', params.cursor);
+      
+      const res = await api.get(`/organizations/members?${searchParams.toString()}`);
+      return res.data as { data: User[], meta: { total: number, limit: number, nextCursor: string | null, hasMore: boolean } };
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });

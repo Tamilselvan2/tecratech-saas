@@ -12,6 +12,7 @@ export class TransactionService {
       amount: number;
       category: string;
       description?: string;
+      createdAt?: string;
     }
   ) {
     return this.repository.create({
@@ -20,37 +21,7 @@ export class TransactionService {
     });
   }
 
-  async seedTransactions(orgId: string) {
-    const types = ['INCOME', 'EXPENSE'];
-    const categories = ['Software', 'Payroll', 'Consulting', 'Marketing', 'Office Supplies', 'Travel'];
-    
-    const transactions = [];
-    for (let i = 0; i < 25; i++) {
-      const type = types[Math.floor(Math.random() * types.length)] as 'INCOME' | 'EXPENSE';
-      const category = categories[Math.floor(Math.random() * categories.length)];
-      
-      // Random date within last 6 months
-      const date = new Date();
-      date.setMonth(date.getMonth() - Math.floor(Math.random() * 6));
-      
-      transactions.push({
-        orgId,
-        type,
-        amount: Math.floor(Math.random() * 5000) + 100,
-        category,
-        description: 'Auto-generated test transaction',
-        createdAt: date
-      });
-    }
 
-    // Use prisma client directly for bulk insert
-    const { prisma } = require('../../db/prisma');
-    await prisma.transaction.createMany({
-      data: transactions
-    });
-
-    return { count: 25 };
-  }
 
   async updateTransaction(
     id: string,
@@ -60,6 +31,7 @@ export class TransactionService {
       amount: number;
       category: string;
       description: string;
+      createdAt: string;
     }>
   ) {
     const transaction = await this.repository.update(id, orgId, data);
@@ -131,13 +103,26 @@ export class TransactionService {
   }
 
   async exportTransactionsCsvStream(orgId: string, writableStream: NodeJS.WritableStream) {
-    writableStream.write('ID,Date,Type,Category,Amount,Description\n');
+    const writable = writableStream as NodeJS.WritableStream & { destroyed?: boolean; writableEnded?: boolean };
+    let aborted = false;
+    writable.on('close', () => {
+      aborted = true;
+    });
+
+    const writeRow = async (row: string) => {
+      if (aborted) return;
+      if (!writable.write(row)) {
+        await new Promise<void>((resolve) => writable.once('drain', () => resolve()));
+      }
+    };
+
+    await writeRow('ID,Date,Type,Category,Amount,Description\n');
+
     let cursor: string | undefined = undefined;
     const batchSize = 1000;
-    
     const { prisma } = require('../../db/prisma');
 
-    while (true) {
+    while (!aborted) {
       const batch: any[] = await prisma.transaction.findMany({
         where: { orgId },
         take: batchSize,
@@ -149,19 +134,21 @@ export class TransactionService {
       if (batch.length === 0) break;
 
       for (const t of batch) {
+        if (aborted) break;
         const id = t.id;
         const date = t.createdAt.toISOString();
-        const type = t.type;
         const category = `"${t.category.replace(/"/g, '""')}"`;
         const amount = t.amount;
         const desc = t.description ? `"${t.description.replace(/"/g, '""')}"` : '""';
-        
-        writableStream.write(`${id},${date},${type},${category},${amount},${desc}\n`);
+        await writeRow(`${id},${date},${t.type},${category},${amount},${desc}\n`);
       }
 
+      if (aborted) break;
       cursor = batch[batch.length - 1].id;
     }
-    
-    writableStream.end();
+
+    if (!writable.writableEnded && !writable.destroyed) {
+      writable.end();
+    }
   }
 }

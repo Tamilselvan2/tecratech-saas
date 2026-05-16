@@ -9,6 +9,15 @@ export interface DashboardData {
     totalExpense: number;
     balance: number;
     transactionCount: number;
+    kpi?: {
+      currentMonthIncome: number;
+      previousMonthIncome: number;
+      incomeGrowth: number;
+      currentMonthExpense: number;
+      previousMonthExpense: number;
+      expenseGrowth: number;
+      balanceGrowth: number;
+    };
   };
   categorySummaries: {
     income: { category: string; total: number }[];

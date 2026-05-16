@@ -2,10 +2,10 @@ import { prisma } from '../../db/prisma';
 import { Prisma, Role } from '@prisma/client';
 
 export class AuthRepository {
-  async createUserWithOrg(orgName: string, email: string, passwordHash: string) {
+  async createUserWithOrg(name: string, email: string, passwordHash: string) {
     return prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
-        data: { name: orgName },
+        data: { name },
       });
 
       const user = await tx.user.create({
@@ -30,6 +30,16 @@ export class AuthRepository {
   async findUserById(id: string) {
     return prisma.user.findUnique({
       where: { id },
+      include: { organization: true }
+    });
+  }
+
+
+
+  async updatePassword(id: string, passwordHash: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { passwordHash }
     });
   }
 
@@ -44,14 +54,26 @@ export class AuthRepository {
   }
 
   async findRefreshToken(hashedToken: string) {
-    return prisma.refreshToken.findFirst({
-      where: {
-        hashedToken,
-      },
-      include: {
-        user: true
-      }
+    return prisma.refreshToken.findUnique({
+      where: { hashedToken },
+      include: { user: true },
     });
+  }
+
+  async replaceRefreshToken(oldTokenId: string, userId: string, newHashedToken: string, expiresAt: Date) {
+    return prisma.$transaction([
+      prisma.refreshToken.update({
+        where: { id: oldTokenId },
+        data: { revoked: true },
+      }),
+      prisma.refreshToken.create({
+        data: {
+          userId,
+          hashedToken: newHashedToken,
+          expiresAt,
+        },
+      }),
+    ]);
   }
 
   async revokeRefreshToken(id: string) {

@@ -22,11 +22,6 @@ router.post(
   controller.create
 );
 
-router.post(
-  '/seed',
-  authorize(['ADMIN']),
-  controller.seed
-);
 
 router.get(
   '/export',

@@ -6,8 +6,8 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'TecraTech Dashboard',
-  description: 'Enterprise Financial Management',
+  title: 'Fintriq | Financial Dashboard',
+  description: 'Financial clarity for modern teams.',
 };
 
 export default function RootLayout({
@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark">
       <body className={inter.className}>
         <Providers>
           {children}

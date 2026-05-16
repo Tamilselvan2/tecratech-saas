@@ -6,8 +6,8 @@ export class AuthController {
 
   register = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { orgName, email, password } = req.body;
-      const result = await this.authService.register(orgName, email, password);
+      const { name, email, password } = req.body;
+      const result = await this.authService.register(name, email, password);
 
       res.status(201).json({
         success: true,
@@ -23,10 +23,11 @@ export class AuthController {
       const { email, password } = req.body;
       const { accessToken, refreshToken, user } = await this.authService.login(email, password);
 
+      const isProduction = process.env.NODE_ENV === 'production';
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -52,10 +53,11 @@ export class AuthController {
 
       const { accessToken, refreshToken: newRefreshToken } = await this.authService.refresh(refreshToken);
 
+      const isProduction = process.env.NODE_ENV === 'production';
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000,
       });
 
@@ -99,6 +101,20 @@ export class AuthController {
         success: true,
         data: { user },
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  changePassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+
+      const { currentPassword, newPassword } = req.body;
+      await this.authService.changePassword(userId, currentPassword, newPassword);
+      
+      res.status(200).json({ success: true, message: 'Password updated successfully' });
     } catch (error) {
       next(error);
     }

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: tecratech-backend
+    name: fintriq-backend
     runtime: node
     rootDir: backend
     buildCommand: npm ci && npx prisma generate && npm run build

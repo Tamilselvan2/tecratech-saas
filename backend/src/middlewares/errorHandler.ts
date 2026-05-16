@@ -18,6 +18,7 @@ export const errorHandler = (
   }
 
   if (err instanceof ZodError) {
+    logger.warn('Validation error', { issues: err.issues });
     return res.status(400).json({
       success: false,
       message: 'Validation error',
@@ -25,7 +26,7 @@ export const errorHandler = (
     });
   }
 
-  logger.error('Unhandled Exception:', { error: err.message, stack: err.stack });
+  logger.error('Unhandled Exception', { message: err.message, stack: err.stack });
   return res.status(500).json({
     success: false,
     message: 'Internal server error',

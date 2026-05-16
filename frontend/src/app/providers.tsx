@@ -8,7 +8,7 @@ import { AuthProvider } from '@/hooks/use-auth';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors theme="dark" />
       <AuthProvider>
         {children}
       </AuthProvider>

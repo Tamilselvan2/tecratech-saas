@@ -28,15 +28,15 @@ export function FilterBar({ initialSearch = '', initialType = '', initialCategor
   }, [search, type, category, onFilterChange]);
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-border flex flex-col sm:flex-row gap-4 items-center transition-all">
+    <div className="bg-card p-4 rounded-2xl shadow-sm border border-border flex flex-col sm:flex-row gap-4 items-center transition-all">
       <div className="relative flex-1 w-full">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
         <input
           type="text"
           placeholder="Search descriptions..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-border rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-blue/50 transition-shadow placeholder-slate-400"
+          className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-xl text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow placeholder-muted-foreground/60"
         />
       </div>
 

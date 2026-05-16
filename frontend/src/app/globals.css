@@ -4,15 +4,34 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --border: 214.3 31.8% 91.4%;
-  }
+    --background: 222.2 84% 4.9%; /* #020817 */
+    --foreground: 210 40% 98%;    /* #f8fafc */
+    --card: 222.2 47.4% 11.2%;    /* #0f172a */
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 215 33% 17%;      /* #1e293b */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 221 39% 11%;          /* #111827 */
+    --muted-foreground: 215 20.2% 65.1%; /* #94a3b8 */
+    --accent: 215 33% 17%;         /* #1e293b */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 215 25% 27%;         /* #334155 */
+    --input: 215 25% 27%;
+    --ring: 224.3 76.3% 48%;
+    --radius: 0.75rem;
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
+    --sidebar: 222.2 84% 4.9%;
+    --sidebar-foreground: 215 20.2% 65.1%;
+    --sidebar-active: 215 33% 17%;
+    --sidebar-active-foreground: 210 40% 98%;
+    
+    --success: 158 84% 40%;        /* #10b981 */
+    --danger: 350 89% 60%;         /* #f43f5e */
   }
 }
 
@@ -22,5 +41,85 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    /* Soften the transitions for premium feel */
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+}
+
+/* Custom scrollbar for webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-300 dark:bg-slate-700;
+}
+
+/* Hide scrollbar completely but allow scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@layer components {
+  /* Global Select/Dropdown Stabilization */
+  select, select option {
+    @apply bg-[#0f172a] text-[#f8fafc] border-[#334155];
+  }
+  
+  select:focus {
+    @apply ring-2 ring-primary/40 border-primary/50;
+  }
+
+  /* Premium CTA Button Styles */
+  .btn-primary {
+    @apply relative overflow-hidden bg-gradient-to-br from-[#2563eb] via-[#3b82f6] to-[#10b981] text-white font-black tracking-tight rounded-xl shadow-[0_8px_20px_rgba(37,99,235,0.25)] transition-all duration-300 hover:shadow-[0_12px_25px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98];
+  }
+  
+  .btn-primary::after {
+    content: '';
+    @apply absolute inset-0 bg-white/10 opacity-0 transition-opacity duration-300 hover:opacity-100;
+  }
+
+  .btn-glow {
+    @apply shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)];
+  }
+
+  /* Dropdown Menus (Radix/Shadcn style) */
+  [role="menu"], [role="listbox"], .dropdown-content {
+    @apply bg-[#0f172a] border border-[#334155] rounded-xl shadow-2xl p-1 z-50;
+  }
+
+  [role="menuitem"], [role="option"], .dropdown-item {
+    @apply flex items-center px-3 py-2 text-sm font-bold text-[#f8fafc] rounded-lg cursor-pointer transition-colors outline-none;
+  }
+
+  [role="menuitem"]:hover, [role="option"]:hover, .dropdown-item:hover {
+    @apply bg-primary/15 text-white;
+  }
+
+  [role="menuitem"][data-highlighted], [role="option"][aria-selected="true"] {
+    @apply bg-primary/25 text-[#60a5fa];
+  }
+}
+
+@layer base {
+  /* Ensure all interactive elements have consistent focus ring */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
   }
 }

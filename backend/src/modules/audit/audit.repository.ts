@@ -8,7 +8,6 @@ interface CreateAuditLogParams {
   entityType: string;
   entityId?: string;
   details?: Record<string, any>;
-  ipAddress?: string;
 }
 
 export class AuditRepository {
@@ -22,7 +21,6 @@ export class AuditRepository {
         entityType: params.entityType,
         entityId: params.entityId,
         details: params.details,
-        ipAddress: params.ipAddress,
       },
     });
   }

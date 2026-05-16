@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { Role } from '@prisma/client';
 import { TransactionService } from './transaction.service';
 import { AuditService, AuditActions } from '../audit/audit.service';
 
@@ -9,14 +10,15 @@ export class TransactionController {
 
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const orgId = req.user!.orgId;
+      const user = req.user as { userId: string; orgId: string; role: Role; email: string };
+      const orgId = user.orgId;
       const transaction = await this.service.createTransaction(orgId, req.body);
 
       // Fire-and-forget audit log
       auditService.log({
         orgId,
-        userId: req.user!.userId,
-        userEmail: req.user!.email,
+        userId: user.userId,
+        userEmail: user.email,
         action: AuditActions.CREATE_TRANSACTION,
         entityType: 'TRANSACTION',
         entityId: transaction.id,
@@ -26,7 +28,6 @@ export class TransactionController {
           category: transaction.category,
           description: transaction.description,
         },
-        ipAddress: req.ip,
       });
 
       res.status(201).json({ success: true, data: transaction });
@@ -37,19 +38,19 @@ export class TransactionController {
 
   update = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const orgId = req.user!.orgId;
+      const user = req.user as { userId: string; orgId: string; role: Role; email: string };
+      const orgId = user.orgId;
       const { id } = req.params;
       const transaction = await this.service.updateTransaction(id as string, orgId, req.body);
 
       auditService.log({
         orgId,
-        userId: req.user!.userId,
-        userEmail: req.user!.email,
+        userId: user.userId,
+        userEmail: user.email,
         action: AuditActions.UPDATE_TRANSACTION,
         entityType: 'TRANSACTION',
         entityId: id as string,
         details: req.body,
-        ipAddress: req.ip,
       });
 
       res.status(200).json({ success: true, data: transaction });
@@ -60,19 +61,19 @@ export class TransactionController {
 
   delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const orgId = req.user!.orgId;
+      const user = req.user as { userId: string; orgId: string; role: Role; email: string };
+      const orgId = user.orgId;
       const { id } = req.params;
       await this.service.deleteTransaction(id as string, orgId);
 
       auditService.log({
         orgId,
-        userId: req.user!.userId,
-        userEmail: req.user!.email,
+        userId: user.userId,
+        userEmail: user.email,
         action: AuditActions.DELETE_TRANSACTION,
         entityType: 'TRANSACTION',
         entityId: id as string,
         details: {},
-        ipAddress: req.ip,
       });
 
       res.status(200).json({ success: true, message: 'Transaction deleted successfully' });
@@ -105,23 +106,21 @@ export class TransactionController {
     }
   };
 
-  seed = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const orgId = req.user!.orgId;
-      const result = await this.service.seedTransactions(orgId);
-      res.status(200).json({ success: true, message: 'Seeded successfully', data: result });
-    } catch (error) {
-      next(error);
-    }
-  };
+
 
   exportCsv = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const orgId = req.user!.orgId;
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="transactions.csv"');
+      res.flushHeaders();
       await this.service.exportTransactionsCsvStream(orgId, res);
     } catch (error) {
+      if (!res.headersSent) {
+        res.status(500).json({ success: false, message: 'Unable to export transactions' });
+      } else {
+        res.end();
+      }
       next(error);
     }
   };

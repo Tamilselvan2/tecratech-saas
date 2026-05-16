@@ -3,13 +3,25 @@ import { OrganizationController } from './organization.controller';
 import { authenticate } from '../../middlewares/authMiddleware';
 import { authorize } from '../../middlewares/roleMiddleware';
 import { validateRequest, validateParams } from '../../middlewares/validateRequest';
-import { inviteMemberSchema, updateRoleSchema, memberIdParamsSchema } from './organization.validation';
+import { inviteMemberSchema, updateRoleSchema, memberIdParamsSchema, updateOrganizationSchema } from './organization.validation';
 
 const router = Router();
 const controller = new OrganizationController();
 
 // All organization routes require authentication
 router.use(authenticate);
+
+router.get(
+  '/current',
+  controller.getOrganization
+);
+
+router.patch(
+  '/current',
+  authorize(['ADMIN']),
+  validateRequest(updateOrganizationSchema),
+  controller.updateOrganization
+);
 
 // View members is accessible to anyone in the organization
 router.get(

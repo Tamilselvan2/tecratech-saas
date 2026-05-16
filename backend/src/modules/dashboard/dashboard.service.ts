@@ -7,19 +7,28 @@ export class DashboardService {
     const startDate = startDateStr ? new Date(startDateStr) : undefined;
     const endDate = endDateStr ? new Date(endDateStr) : undefined;
 
-    // Run aggregations in parallel to avoid N+1 and minimize latency
+    // Calculate current and previous month boundaries for KPI comparison
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
     const [
       aggregates, 
       incomeCategories, 
       expenseCategories, 
       monthlyData, 
-      recentTransactions
+      recentTransactions,
+      currentMonthAggregates,
+      previousMonthAggregates
     ] = await Promise.all([
       this.repository.getAggregates(orgId, startDate, endDate),
       this.repository.getCategorySummaries(orgId, 'INCOME', startDate, endDate),
       this.repository.getCategorySummaries(orgId, 'EXPENSE', startDate, endDate),
       this.repository.getMonthlyAnalytics(orgId, startDate, endDate),
-      this.repository.getRecentTransactions(orgId, 5)
+      this.repository.getRecentTransactions(orgId, 5),
+      this.repository.getAggregates(orgId, currentMonthStart, now),
+      this.repository.getAggregates(orgId, previousMonthStart, previousMonthEnd)
     ]);
 
     // Process Aggregates
@@ -68,12 +77,49 @@ export class DashboardService {
 
     const monthlyAnalytics = Array.from(monthlyMap.values()).sort((a, b) => a.month.localeCompare(b.month));
 
+    // Process KPI Comparison
+    let currentMonthIncome = 0, currentMonthExpense = 0;
+    let previousMonthIncome = 0, previousMonthExpense = 0;
+
+    for (const agg of currentMonthAggregates) {
+      if (agg.type === 'INCOME') currentMonthIncome += agg._sum.amount || 0;
+      else if (agg.type === 'EXPENSE') currentMonthExpense += agg._sum.amount || 0;
+    }
+
+    for (const agg of previousMonthAggregates) {
+      if (agg.type === 'INCOME') previousMonthIncome += agg._sum.amount || 0;
+      else if (agg.type === 'EXPENSE') previousMonthExpense += agg._sum.amount || 0;
+    }
+
+    const currentBalance = currentMonthIncome - currentMonthExpense;
+    const previousBalance = previousMonthIncome - previousMonthExpense;
+
+    const safeDivide = (a: number, b: number) => b === 0 ? (a > 0 ? 100 : 0) : (a / b) * 100;
+    
+    const incomeGrowth = previousMonthIncome === 0 && currentMonthIncome > 0 ? 100 : 
+      previousMonthIncome === 0 ? 0 : ((currentMonthIncome - previousMonthIncome) / previousMonthIncome) * 100;
+      
+    const expenseGrowth = previousMonthExpense === 0 && currentMonthExpense > 0 ? 100 : 
+      previousMonthExpense === 0 ? 0 : ((currentMonthExpense - previousMonthExpense) / previousMonthExpense) * 100;
+      
+    const balanceGrowth = previousBalance === 0 && currentBalance > 0 ? 100 : 
+      previousBalance === 0 ? 0 : ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100;
+
     return {
       overview: {
         totalIncome,
         totalExpense,
         balance,
-        transactionCount
+        transactionCount,
+        kpi: {
+          currentMonthIncome,
+          previousMonthIncome,
+          incomeGrowth,
+          currentMonthExpense,
+          previousMonthExpense,
+          expenseGrowth,
+          balanceGrowth
+        }
       },
       categorySummaries: {
         income: incomeCategories.map(formatCategory),

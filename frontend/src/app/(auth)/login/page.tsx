@@ -22,50 +22,57 @@ export default function LoginPage() {
       await login(data);
       toast.success('Logged in successfully');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      const status = error.response?.status;
+      const toastMessage = status === 401 ? 'Invalid email or password' : error.response?.data?.message || 'Login failed';
+      toast.error(toastMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Welcome Back</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">Enter your credentials to access your workspace</p>
+    <div className="animate-in fade-in slide-in-from-bottom-6 duration-1000">
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-[22px] mb-6 shadow-[0_0_20px_rgba(59,130,246,0.1)] border border-primary/20">
+          <svg className="w-9 h-9 text-primary filter drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h1 className="text-4xl font-black text-white tracking-tight mb-3">Welcome back</h1>
+        <p className="text-[#94a3b8] font-bold text-sm uppercase tracking-widest opacity-80">Financial clarity for modern teams</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email address</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-1.5">Email address</label>
           <div className="relative">
             <input
               {...register('email')}
               type="email"
-              className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all backdrop-blur-sm"
+              className="w-full px-4 py-2.5 bg-background dark:bg-slate-900/50 border border-border rounded-lg text-foreground placeholder-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               placeholder="you@example.com"
             />
           </div>
-          {errors.email && <p className="text-brand-rose text-sm mt-1.5 font-medium animate-in fade-in">{errors.email.message}</p>}
+          {errors.email && <p className="text-danger text-sm mt-1.5 font-medium animate-in fade-in">{errors.email.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+          <label className="block text-sm font-semibold text-muted-foreground mb-1.5">Password</label>
           <div className="relative">
             <input
               {...register('password')}
               type="password"
-              className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all backdrop-blur-sm"
+              className="w-full px-4 py-2.5 bg-background dark:bg-slate-900/50 border border-border rounded-lg text-foreground placeholder-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               placeholder="••••••••"
             />
           </div>
-          {errors.password && <p className="text-brand-rose text-sm mt-1.5 font-medium animate-in fade-in">{errors.password.message}</p>}
+          {errors.password && <p className="text-danger text-sm mt-1.5 font-medium animate-in fade-in">{errors.password.message}</p>}
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="relative w-full py-2.5 px-4 bg-gradient-to-r from-brand-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-semibold shadow-lg shadow-brand-blue/30 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed overflow-hidden mt-2"
+          className="w-full btn-primary btn-glow py-3 mt-2"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center gap-2">
@@ -79,10 +86,10 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-8 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
-        Don't have an account?{' '}
-        <Link href="/register" className="text-brand-blue hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors">
-          Register here
+      <div className="mt-8 text-center text-sm font-medium text-muted-foreground">
+        New to Fintriq?{' '}
+        <Link href="/register" className="text-primary hover:underline transition-colors font-bold">
+          Create an account
         </Link>
       </div>
     </div>

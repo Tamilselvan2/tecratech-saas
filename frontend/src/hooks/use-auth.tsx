@@ -14,6 +14,8 @@ import { setAccessToken } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { LoginInput } from '@/lib/validations/auth';
 
+const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -22,6 +24,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAdmin: boolean;
   isAccountant: boolean;
+  changePassword: (data: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,14 +43,12 @@ export const AuthProvider = ({
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef(Date.now());
 
-  const TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
-
   useEffect(() => {
     const initAuth = async () => {
       try {
         const currentUser = await authApi.getMe();
         setUser(currentUser);
-      } catch (error) {
+      } catch {
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -59,16 +60,17 @@ export const AuthProvider = ({
     const handleUnauthorized = () => {
       setAccessToken(null);
       setUser(null);
-      router.push('/login');
+
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/register') {
+        router.push('/login');
+      }
     };
 
     window.addEventListener('auth:unauthorized', handleUnauthorized);
 
     return () => {
-      window.removeEventListener(
-        'auth:unauthorized',
-        handleUnauthorized
-      );
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
     };
   }, [router]);
 
@@ -100,49 +102,36 @@ export const AuthProvider = ({
       }
     };
 
-    const events = [
-      'mousemove',
-      'keydown',
-      'click',
-      'scroll',
-      'touchstart',
-    ];
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
 
-    // Register activity listeners
     events.forEach((event) => {
       window.addEventListener(event, updateActivity, {
         passive: true,
       });
     });
 
-    // Initialize activity timestamp
     updateActivity();
 
-    // Check inactivity every 5 seconds
     inactivityTimerRef.current = setInterval(() => {
       checkInactivity();
     }, 5000);
 
     return () => {
-      // Cleanup interval
       if (inactivityTimerRef.current) {
         clearInterval(inactivityTimerRef.current);
       }
 
-      // Cleanup listeners
       events.forEach((event) => {
         window.removeEventListener(event, updateActivity);
       });
     };
-  }, [user, router]);
+  }, [router, user]);
 
   const login = async (data: LoginInput) => {
     const { accessToken, user } = await authApi.login(data);
 
     setAccessToken(accessToken);
     setUser(user);
-
-    // Reset activity timestamp on login
     lastActivityRef.current = Date.now();
 
     router.push('/dashboard');
@@ -165,6 +154,10 @@ export const AuthProvider = ({
     }
   };
 
+  const changePassword = async (data: any) => {
+    await authApi.changePassword(data);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -173,6 +166,7 @@ export const AuthProvider = ({
         isAuthenticated: !!user,
         login,
         logout,
+        changePassword,
         isAdmin: user?.role === Role.ADMIN,
         isAccountant: user?.role === Role.ACCOUNTANT,
       }}
@@ -186,9 +180,7 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (context === undefined) {
-    throw new Error(
-      'useAuth must be used within an AuthProvider'
-    );
+    throw new Error('useAuth must be used within an AuthProvider');
   }
 
   return context;

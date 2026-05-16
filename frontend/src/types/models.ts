@@ -19,6 +19,7 @@ export interface Organization {
 export interface User {
   id: string;
   email: string;
+  name?: string;
   role: Role;
   orgId: string;
   createdAt: string;

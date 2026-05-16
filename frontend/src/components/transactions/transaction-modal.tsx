@@ -115,6 +115,8 @@ export function TransactionModal({ isOpen, onOpenChange, transaction }: Transact
             {errors.category && <p className="text-brand-rose text-xs mt-1.5 font-medium">{errors.category.message}</p>}
           </div>
 
+
+
           <div>
             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Description <span className="text-slate-400 font-normal">(Optional)</span></label>
             <textarea

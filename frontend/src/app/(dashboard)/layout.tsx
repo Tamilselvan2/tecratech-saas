@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (isLoading || !isAuthenticated) return null; // Let loading.tsx handle UI while authenticating
 
   return (
-    <div className="flex h-screen bg-slate-50/50 dark:bg-slate-950 overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         <div className="md:hidden h-16 w-full shrink-0"></div>

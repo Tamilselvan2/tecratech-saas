@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { AuthRepository } from './auth.repository';
 import { AppError } from '../../utils/errors';
 import { generateAccessToken, generateRefreshToken, hashToken, JwtPayload, verifyRefreshToken } from '../../utils/jwt';
@@ -6,14 +6,14 @@ import { generateAccessToken, generateRefreshToken, hashToken, JwtPayload, verif
 export class AuthService {
   private repository = new AuthRepository();
 
-  async register(orgName: string, email: string, password: string) {
+  async register(name: string, email: string, password: string) {
     const existingUser = await this.repository.findUserByEmail(email);
     if (existingUser) {
       throw new AppError(409, 'User with this email already exists');
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const { user, org } = await this.repository.createUserWithOrg(orgName, email, passwordHash);
+    const { user, org } = await this.repository.createUserWithOrg(name, email, passwordHash);
 
     const { passwordHash: _, ...safeUser } = user;
     return { user: safeUser, org };
@@ -21,7 +21,7 @@ export class AuthService {
 
   async login(email: string, password: string) {
     const user = await this.repository.findUserByEmail(email);
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new AppError(401, 'Invalid credentials');
     }
 
@@ -69,8 +69,6 @@ export class AuthService {
         throw new AppError(401, 'Refresh token expired');
       }
 
-      await this.repository.revokeRefreshToken(dbToken.id);
-
       const payload: JwtPayload = {
         userId: dbToken.user.id,
         email: dbToken.user.email,
@@ -85,7 +83,7 @@ export class AuthService {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
 
-      await this.repository.saveRefreshToken(dbToken.user.id, newHashedToken, expiresAt);
+      await this.repository.replaceRefreshToken(dbToken.id, dbToken.user.id, newHashedToken, expiresAt);
 
       return { accessToken: newAccessToken, refreshToken: newRefreshTokenString };
     } catch (error) {
@@ -110,5 +108,23 @@ export class AuthService {
     }
     const { passwordHash: _, ...safeUser } = user;
     return safeUser;
+  }
+  
+  // Disabled per AUTH STABILIZATION requirements
+  async updateProfile(userId: string, name?: string, email?: string) {
+    throw new AppError(501, 'Profile editing is disabled');
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await this.repository.findUserById(userId);
+    if (!user) throw new AppError(404, 'User not found');
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      throw new AppError(401, 'Current password is incorrect');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await this.repository.updatePassword(userId, hashedPassword);
   }
 }

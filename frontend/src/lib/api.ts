@@ -9,8 +9,10 @@ export const setAccessToken = (token: string | null) => {
 
 export const getAccessToken = () => accessToken;
 
+const normalizeApiUrl = (url: string) => url.replace(/\/+$/, '').replace(/\/api$/i, '');
+const apiHost = normalizeApiUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000');
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+  baseURL: `${apiHost}/api`,
   withCredentials: true, // Send cookies for refresh token
 });
 
@@ -88,9 +90,14 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
+          `${apiHost}/api/auth/refresh`,
           {},
-          { withCredentials: true }
+          {
+            withCredentials: true,
+            headers: {
+              'X-CSRF-Token': '1',
+            },
+          }
         );
 
         const newAccessToken = data.data.accessToken;

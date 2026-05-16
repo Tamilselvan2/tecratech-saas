@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "lint": "echo \"No backend lint configured\"",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No backend tests configured\" && exit 0"
   },
   "keywords": [],
   "author": "",
