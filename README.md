@@ -2,7 +2,7 @@
 
 Fintriq is a multi-tenant financial management SaaS platform built with Next.js, Express, Prisma, and PostgreSQL. The current implementation focuses on tenant-scoped transaction management, dashboard analytics, team access control, and audit visibility in a single full-stack codebase.
 
-## Live Demo
+## Live
 
 - Frontend: `https://fintriq.vercel.app/`
 - Architecture: [ARCHITECTURE.md](./ARCHITECTURE.md)
